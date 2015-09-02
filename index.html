@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Blogger Menu Generator</title>
+    <link type="text/css" href="../blogger/css/style.css"  rel="stylesheet"></link>
+</head>
+<body>
+<header id="header"><h1>Blogger Menu Generator</h1></header>
+<main id="main" class="cf nestable-lists">
+    <div id="input">
+        <input placeholder="input url" value="http://zaid-info.blogspot.com" name="url" type="text" id="url"/>
+        <button id="run">Try it</button>
+    </div>
+
+    <aside id="a1" class="dd">
+        <h2>List Categories</h2>
+        <ul id="result" class="dd-list"></ul>
+        <h2>Latest Used</h2>
+        <div id="latest"></div>
+    </aside>
+    <aside id="a2" class="dd">
+        <ul id="finish" class="dd-list dd-empty"></ul>
+        <button id="generate">Generate</button>
+    </aside>
+</main>
+
+    <script type="text/javascript" src="../blogger/js/jquery.min.js"></script>
+    <script type="text/javascript" src="../blogger/js/jquery.nestable.js"></script>
+    
+<script type="text/javascript">
+        var cats = " ";
+        var link;
+        var a;
+        document.getElementById("run").onclick = function() {
+            link = document.getElementById("url").value;
+            document.getElementById("result").innerHTML = "Loading...";
+            //buat element script
+            var to = document.createElement('script');
+            to.src =  link+"/feeds/posts/summary?&alt=json-in-script&callback=mycallback";
+            document.getElementById("result").appendChild(to);
+        }    
+        function mycallback(json) {
+            var array = [];
+            for (var i = 0; i < json.feed.category.length; i++) {
+                var a = json.feed.category[i].term;
+                array.push(a);
+                array.sort(function (a, b) {
+                  return a.localeCompare(b);
+                });
+            }
+            for (var j = 0; j<array.length;j++){
+                cats += "<li class='dd-item'><a class='dd-handle' href='"+link+"/search/label/"+array[j]+"' title='"+array[j]+"'>"+array[j]+"</a></li>";
+            }
+            cats +="<li style='display:none;'></li>";
+            document.getElementById("result").innerHTML = cats;
+        }
+    //drag n drop
+$(document).ready(function(){
+    var list;
+    var updateOutput = function(e)
+    {
+        list   = e.target.children;
+        $('#latest').empty();
+        $(list).clone().appendTo('#latest');
+        $('#latest').find('button').remove();
+        $('#latest').find('.dd-empty').remove();
+        $('#latest').find('#text').remove();
+        $('#latest').find('#copy').remove();
+    };
+    $('#a1').nestable({
+        group: 1
+    });
+    $('#a2').nestable({
+        group: 1
+    })
+    .on('change', updateOutput);
+    
+    $('#generate').click(function(){
+        if($('#copy').length == 0){
+            var paste = $("<textarea onclick='this.focus();this.select();document.execCommand(&quot;copy&quot;);alert(&quot;Copied&quot;)' readonly='readonly' id='copy'></textarea>");
+            $('#a2').append(paste);
+        }
+        $('#copy').empty();
+        var s = $('#a2').children();
+        var j = $(s).clone();
+        $('#copy').append(j);
+        $('#copy').find('button').remove();
+        $('#copy').find('textarea').remove();
+        $('#copy').find('li').removeAttr('class');
+        $('#copy').find('ul').removeAttr('class');
+        $('#copy').find('a').removeAttr('class');
+        var rep = $('#copy').html();
+        var fix = htmlEntities(rep);
+        $('#copy').html(fix);
+    });
+    function htmlEntities(str) {
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt; \n').replace(/"/g, '&quot;');
+    }
+    
+        //set height
+        var h = window.innerHeight
+                || document.documentElement.clientHeight
+                || document.body.clientHeight;
+        var th = document.getElementById("header").offsetHeight;
+        var ti = document.getElementById("input").offsetHeight;
+        var fix = h - th;
+        var scroll = fix - ti;
+        var slat = scroll/2;
+        var css = document.createElement("style");
+        css.type = "text/css";
+        css.innerHTML = "#main{max-height:"+fix+"px;} #a1,#a2{max-height:"+scroll+"px;}#latest,#result{max-height:"+slat+"px;}";
+        document.head.appendChild(css);
+});
+    console.log('%c Lagi Ngecek Console Yah ? ', 'background: #ddd; color: #aaa;font-size:33px;font-seight:bold;');
+</script>
+
+</body>
+</html>
